@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 module: sns_topic_subscription
 short_description: Manages AWS SNS subscriptions
-version_added: 1.0.0
+version_added: 6.0.0
 description:
     - The M(community.aws.sns_topic_subscription) module allows you to create, delete, and manage subscriptions for AWS SNS topics.
 author:
@@ -48,13 +48,13 @@ options:
     required: true
     suboptions:
       endpoint:
-        description: Endpoint of subscription.
+        description: Endpoint for the subscription. SQS ARN for example.
         required: true
       protocol:
-        description: Protocol of subscription.
+        description: Protocol for the subscription.
         required: true
       attributes:
-        description: Attributes of subscription. Only supports RawMessageDelievery for SQS endpoints.
+        description: Attributes for the subscription. See [Boto doc](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sns.html#SNS.Client.set_subscription_attributes)
         default: {}
 extends_documentation_fragment:
 - amazon.aws.aws
@@ -98,16 +98,56 @@ EXAMPLES = r"""
 """
 
 RETURN = r'''
-subscription_id:
-    description: The id of the topic subscription
-    type: str
-    returned: always
-    sample: "c9a5b229-303d-4619-acc4-82b9f990210f"
-sns_topic_subscription:
-  description: Dict of sns topic subscription details
+arn:
+  description: The ARN of the topic subscription
+  type: str
+  returned: always
+  sample: arn:aws:sns:us-west-4:123456789012:test:a89170dc-fef0-4cf8-bc7e-e02948903af9
+attributes:
+  description: Dict of sns topic subscription attributes
   type: complex
   returned: always
   contains:
+    confirmation_was_authenticated:
+      description: Whether communication to AWS was atuhenticated.
+      returned: always
+      type: bool
+      sample: true
+    endpoint:
+      description: The target endpoint for the subscription.
+      returned: always
+      type: str
+      sample: arn:aws:sqs:us-west-4:123456789012:test
+    owner:
+      description: The owning account for the subscription.
+      returned: always
+      type: str
+      sample: 123456789012
+    pending_confirmation:
+      description: Whether the subscription still needs to be confirmed.
+      returned: always
+      type: bool
+      sample: false
+    protocol:
+      description: The protocol for the subscription.
+      returned: always
+      type: str
+      sample: sqs
+    subscription_arn:
+      description: The ARN for the subscription.
+      returned: always
+      type: str
+      sample: arn:aws:sns:us-west-4:123456789012:test:a89170dc-fef0-4cf8-bc7e-e02948903af9
+    subscription_principal:
+      description: The ARN for the subscription.
+      returned: always
+      type: str
+      sample: arn:aws:iam::123456789012:role/test
+    topic_arn:
+      description: The ARN for the topic which the subscription targets.
+      returned: always
+      type: str
+      sample: arn:aws:sns:us-west-4:123456789012:test
     check_mode:
       description: whether check mode was on
       returned: always
@@ -121,6 +161,9 @@ try:
     import botocore
 except ImportError:
     pass  # handled by AnsibleAWSModule
+
+
+from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
 
 from ansible_collections.amazon.aws.plugins.module_utils.core import AnsibleAWSModule
 from ansible_collections.community.aws.plugins.module_utils.sns import topic_arn_lookup
@@ -306,11 +349,12 @@ def main():
     elif state == 'absent':
         changed = sns_topic_sub.ensure_gone()
 
-    sns_topic_sub_facts = dict(changed=changed,
-                     sns_topic_subscription_arn=sns_topic_sub.sub_arn,
-                     sns_topic_subscription=sns_topic_sub.attributes_set)
+    result = dict(
+        arn=sns_topic_sub.sub_arn,
+        attributes=camel_dict_to_snake_dict(sns_topic_sub.attributes_set)
+    )
 
-    module.exit_json(**sns_topic_sub_facts)
+    module.exit_json(changed=changed,**result)
 
 
 if __name__ == '__main__':

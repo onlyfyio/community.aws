@@ -8,20 +8,20 @@ __metaclass__ = type
 
 
 DOCUMENTATION = r'''
-module: sns_queue_info
-short_description: sns_queue_info module
+module: sqs_queue_info
+short_description: sqs_queue_info module
 version_added: 6.0.0
 description:
-- The M(community.aws.sns_queue_info) module allows to get all AWS SQS queues or properties of a specific AWS SQS queue.
+- The M(community.aws.sqs_queue_info) module allows to get properties of a specific AWS SQS queue.
 author:
 - "Ralph Kühnert (@redradrat)"
 options:
-  queue_name:
-      description: The ARN or Name of the AWS SQS queue for which you wish to find information.
-      required: true
-      type: str
-  queue_type:
-      description:
+  name:
+    description: The ARN or Name of the AWS SQS queue for which you wish to find information.
+    required: true
+    type: str
+  type:
+    description:
       - Standard or FIFO queue.
       - I(queue_type) can only be set at queue creation and will otherwise be
           ignored.
@@ -35,111 +35,83 @@ extends_documentation_fragment:
 '''
 
 EXAMPLES = r'''
-- name: list all the topics
-  community.aws.sns_topic_info:
-  register: sns_topic_list
+- name: list all the queues
+  community.aws.sqs_queue_info:
+  register: sqs_queue_list
 
-- name: get info on specific topic
-  community.aws.sns_topic_info:
-    topic_arn: "{{ sns_arn }}"
-  register: sns_topic_info
+- name: get info on specific queue
+  community.aws.sqs_queue_info:
+    name: "{{ queue_arn }}"
+    type: fifo
+  register: sqs_queue_info
 '''
 
 RETURN = r'''
-result:
-  description:
-    - The result contaning the details of one or all AWS SNS topics.
-  returned: success
-  type: list
-  contains:
-    sns_arn:
-        description: The ARN of the topic.
-        type: str
-        returned: always
-        sample: "arn:aws:sns:us-east-2:123456789012:my_topic_name"
-    sns_topic:
-        description: Dict of sns topic details.
-        type: complex
-        returned: always
-        contains:
-            content_based_deduplication:
-              description: Whether or not content_based_deduplication was set
-              returned: always
-              type: bool
-              sample: true
-            delivery_policy:
-                description: Delivery policy for the SNS topic.
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: >
-                    {"http":{"defaultHealthyRetryPolicy":{"minDelayTarget":20,"maxDelayTarget":20,"numRetries":3,"numMaxDelayRetries":0,
-                    "numNoDelayRetries":0,"numMinDelayRetries":0,"backoffFunction":"linear"},"disableSubscriptionOverrides":false}}
-            display_name:
-                description: Display name for SNS topic.
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: My topic name
-            owner:
-                description: AWS account that owns the topic.
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: '123456789012'
-            policy:
-                description: Policy for the SNS topic.
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: >
-                    {"Version":"2012-10-17","Id":"SomePolicyId","Statement":[{"Sid":"ANewSid","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::123456789012:root"},
-                    "Action":"sns:Subscribe","Resource":"arn:aws:sns:us-east-2:123456789012:ansible-test-dummy-topic","Condition":{"StringEquals":{"sns:Protocol":"email"}}}]}
-            subscriptions:
-                description: List of subscribers to the topic in this AWS account.
-                returned: always
-                type: list
-                sample: []
-            subscriptions_added:
-                description: List of subscribers added in this run.
-                returned: always
-                type: list
-                sample: []
-            subscriptions_confirmed:
-                description: Count of confirmed subscriptions.
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: '0'
-            subscriptions_deleted:
-                description: Count of deleted subscriptions.
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: '0'
-            subscriptions_existing:
-                description: List of existing subscriptions.
-                returned: always
-                type: list
-                sample: []
-            subscriptions_new:
-                description: List of new subscriptions.
-                returned: always
-                type: list
-                sample: []
-            subscriptions_pending:
-                description: Count of pending subscriptions.
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: '0'
-            subscriptions_purge:
-                description: Whether or not purge_subscriptions was set.
-                returned: always
-                type: bool
-                sample: true
-            topic_arn:
-                description: ARN of the SNS topic (equivalent to sns_arn).
-                returned: when topic is owned by this AWS account
-                type: str
-                sample: arn:aws:sns:us-east-2:123456789012:ansible-test-dummy-topic
-            topic_type:
-                description: The type of topic.
-                type: str
-                sample: "standard"
+arn:
+    description: The ARN of the queue.
+    type: str
+    returned: always
+    sample: "arn:aws:sqs:us-east-2:123456789012:name"
+url:
+    description: The queue url.
+    type: str
+    returned: always
+    sample: "https://us-east-2.queue.amazonaws.com/123456789012/name"
+attributes:
+    description: Dict of sns queue details.
+    type: complex
+    returned: always
+    contains:
+        approximate_number_of_messages:
+            description: Returns the approximate number of messages available for retrieval from the queue.
+            type: int
+            returned: always
+            sample: 0
+        approximate_number_of_messages_delayed:
+            description: Returns the approximate number of messages in the queue that are delayed and not available for reading immediately. This can happen when the queue is configured as a delay queue or when a message has been sent with a delay parameter.
+            type: int
+            returned: always
+            sample: 0
+        approximate_number_of_messages_not_visible:
+            description: Returns the approximate number of messages that are in flight. Messages are considered to be in flight if they have been sent to a client but have not yet been deleted or have not yet reached the end of their visibility window.
+            type: str
+            returned: always
+            sample: 0
+        delay_seconds:
+            description: The delivery delay in seconds.
+            type: int
+            returned: always
+            sample: 0
+        maximum_message_size:
+            description: The maximum message size in bytes.
+            type: int
+            returned: always
+            sample: 262144
+        message_retention_period:
+            description: The message retention period in seconds.
+            type: int
+            returned: always
+            sample: 345600
+        queue_arn:
+            description: The queue's Amazon resource name (ARN).
+            type: str
+            returned: on success
+            sample: 'arn:aws:sqs:us-east-1:123456789012:queuename-987d2de0'
+        redrive_policy:
+            description: The string that includes the parameters for the dead-letter queue functionality of the source queue as a JSON object.
+            type: str
+            returned: always
+            sample: '{"deadLetterTargetArn": "arn:aws:sqs:us-east-2:123456789012:test_dlq", "maxReceiveCount": 5}'
+        sqs_managed_sse_enabled:
+            description: Returns information about whether the queue is using SSE-SQS encryption using SQS owned encryption keys.
+            type: bool
+            returned: always
+            sample: true
+        visibility_timeout:
+            description: The default visibility timeout in seconds.
+            type: int
+            returned: always
+            sample: 30
 '''
 
 
@@ -181,7 +153,7 @@ def main():
       
 
     if queue_arn:
-        results = dict(sqs_queue_arn=queue_arn, sqs_queue_url=queue_url, sqs_queue_attributes=describe_queue(client, queue_url))
+        results = dict(arn=queue_arn, url=queue_url, attributes=describe_queue(client, queue_url))
     else:
         results = list_queues(client, module)
 

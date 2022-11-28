@@ -271,10 +271,10 @@ from ansible_collections.amazon.aws.plugins.module_utils.core import AnsibleAWSM
 from ansible_collections.amazon.aws.plugins.module_utils.ec2 import AWSRetry
 from ansible_collections.amazon.aws.plugins.module_utils.ec2 import compare_aws_tags
 from ansible_collections.amazon.aws.plugins.module_utils.ec2 import compare_policies
-from ansible_collections.amazon.aws.plugins.module_utils.sqs import get_client
-from ansible_collections.amazon.aws.plugins.module_utils.sqs import get_queue_name
-from ansible_collections.amazon.aws.plugins.module_utils.sqs import get_queue_url
-from ansible_collections.amazon.aws.plugins.module_utils.sqs import describe_queue
+from ansible_collections.community.aws.plugins.module_utils.sqs import get_client
+from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_name
+from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_url
+from ansible_collections.community.aws.plugins.module_utils.sqs import describe_queue
 
 
 def create_or_update_sqs_queue(client, module):
