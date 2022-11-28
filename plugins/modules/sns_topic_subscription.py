@@ -160,8 +160,8 @@ class SnsTopicSubscriptionManager(object):
             try:
                 response = self.connection.subscribe(
                     TopicArn=self.topic_arn,
-                    Protocol=self.subscription.protocol,
-                    Endpoint=self.subscription.endpoint,
+                    Protocol=self.subscription_protocol,
+                    Endpoint=self.subscription_endpoint,
                     ReturnSubscriptionArn=True
                 )
             except (botocore.exceptions.ClientError, botocore.exceptions.BotoCoreError) as e:
@@ -170,7 +170,7 @@ class SnsTopicSubscriptionManager(object):
         return True
 
     def _init_desired_subscription_attributes(self):
-        tmp_dict = self.subscription.attributes
+        tmp_dict = self.subscription_attributes
         # aws sdk expects values to be strings
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sns.html#SNS.Client.set_subscription_attributes
         for k, v in tmp_dict.items():
@@ -246,7 +246,7 @@ class SnsTopicSubscriptionManager(object):
             self.topic_arn = topic_arn_lookup(self.connection, self.module, name)
         
         subscriptions_existing_list = {}
-        desired_sub_key = (canonicalize_endpoint(self.subscription.protocol, self.subscription.endpoint))
+        desired_sub_key = (canonicalize_endpoint(self.subscription_protocol, self.subscription_endpoint))
         for sub in list_topic_subscriptions(self.connection, self.module, self.topic_arn):
             sub_key = (sub['Protocol'], sub['Endpoint'])
             subscriptions_existing_list[sub_key] = sub['SubscriptionArn']
