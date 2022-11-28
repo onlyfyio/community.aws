@@ -199,6 +199,7 @@ action_groups:
   - sns_topic
   - sns_topic_info
   - sqs_queue
+  - sqs_queue_info
   - ssm_parameter
   - stepfunctions_state_machine
   - stepfunctions_state_machine_execution

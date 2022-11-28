@@ -185,7 +185,7 @@ def main():
     else:
         results = list_queues(client, module)
 
-    module.exit_json(result=results)
+    module.exit_json(**results)
 
 
 if __name__ == '__main__':
