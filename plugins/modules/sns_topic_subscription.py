@@ -143,12 +143,12 @@ class SnsTopicSubscriptionManager(object):
 
         self.connection = module.client('sns')
         self.module = module
-        self.topic.type = topic_type
-        self.topic.name = topic_name
+        self.topic_type = topic_type
+        self.topic_name = topic_name
         self.state = state
-        self.subscription.protocol = subscription_protocol
-        self.subscription.endpoint = subscription_endpoint
-        self.subscription.attributes = subscription_attributes
+        self.subscription_protocol = subscription_protocol
+        self.subscription_endpoint = subscription_endpoint
+        self.subscription_attributes = subscription_attributes
         self.check_mode = check_mode
         self.topic_arn = None
         self.sub_arn = None
@@ -236,7 +236,7 @@ class SnsTopicSubscriptionManager(object):
         return changed
 
     def populate_arns(self):
-        name = self.topic.name
+        name = self.topic_name
         if name.startswith('arn:'):
             self.topic_arn = self.name
         else:
@@ -271,12 +271,12 @@ def main():
     module = AnsibleAWSModule(argument_spec=argument_spec,
                               supports_check_mode=True)
 
-    topic_type = module.params.get('topic').get('type')
-    topic_name = module.params.get('topic').get('name')
+    topic_type = module.params.get('topic_type')
+    topic_name = module.params.get('topic_name')
     state = module.params.get('state')
-    subscription_protocol = module.params.get('subscription').get('protocol')
-    subscription_endpoint = module.params.get('subscription').get('endpoint')
-    subscription_attributes = module.params.get('subscription').get('attributes')
+    subscription_protocol = module.params.get('subscription_protocol')
+    subscription_endpoint = module.params.get('subscription_endpoint')
+    subscription_attributes = module.params.get('subscription_attributes')
     check_mode = module.check_mode
 
     sns_topic_sub = SnsTopicSubscriptionManager(module,
