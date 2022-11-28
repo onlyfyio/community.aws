@@ -188,7 +188,18 @@ class SnsTopicSubscriptionManager(object):
             self.module.fail_json_aws(e, "Couldn't get subscription attributes for subscription %s" % sub_arn)
 
         # TODO(redradrat): find a proper comparison strategy... probably if not full equal, then change
-        diff = set(self.desired_subscription_attributes.items()) ^ set(self.attributes_set.items())
+        boto_supported_attributes = [
+            'DeliveryPolicy',
+            'FilterPolicy',
+            'RawMessageDelivery',
+            'RedrivePolicy',
+            'SubscriptionRoleArn',
+        ]
+        tmp_sub_attr = dict()
+        for key in self.attributes_set:
+            if key in boto_supported_attributes:
+                tmp_sub_attr[key] = self.attributes_set[key]
+        diff = set(self.desired_subscription_attributes.items()) ^ set(tmp_sub_attr.items())
         if len(diff) != 0:
             changed = True
             if not self.check_mode:
@@ -248,9 +259,9 @@ class SnsTopicSubscriptionManager(object):
         subscriptions_existing_list = {}
         desired_sub_key = (canonicalize_endpoint(self.subscription_protocol, self.subscription_endpoint))
         for sub in list_topic_subscriptions(self.connection, self.module, self.topic_arn):
-            sub_key = (sub['Protocol'], sub['Endpoint'])
+            sub_key = (canonicalize_endpoint(sub['Protocol'], sub['Endpoint']))
             subscriptions_existing_list[sub_key] = sub['SubscriptionArn']
-        if (desired_sub_key in subscriptions_existing_list):
+        if desired_sub_key in subscriptions_existing_list:
             self.sub_arn = subscriptions_existing_list[sub_key]
 
 
