@@ -198,6 +198,7 @@ action_groups:
   - sns
   - sns_topic
   - sns_topic_info
+  - sqs
   - sqs_queue
   - sqs_queue_info
   - ssm_parameter
