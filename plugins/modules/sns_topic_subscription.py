@@ -192,11 +192,11 @@ class SnsTopicSubscriptionManager(object):
         if len(diff) != 0:
             changed = True
             if not self.check_mode:
-                for key, val in self.desired_subscription_attributes:
+                for key in self.desired_subscription_attributes:
                     try:
                         self.connection.set_subscription_attributes(SubscriptionArn=sub_arn,
                                                                     AttributeName=key,
-                                                                    AttributeValue=val)
+                                                                    AttributeValue=self.desired_subscription_attributes[key])
                     except (botocore.exceptions.ClientError, botocore.exceptions.BotoCoreError) as e:
                         self.module.fail_json_aws(e, "Couldn't set subscription attribute '%s'" % key)
             self.attributes_set = self.desired_subscription_attributes
@@ -238,9 +238,9 @@ class SnsTopicSubscriptionManager(object):
     def populate_arns(self):
         name = self.topic_name
         if name.startswith('arn:'):
-            self.topic_arn = self.name
+            self.topic_arn = self.topic_name
         else:
-            name = self.name
+            name = self.topic_name
             if self.topic_type == 'fifo' and not name.endswith('.fifo'):
                 name += ".fifo"
             self.topic_arn = topic_arn_lookup(self.connection, self.module, name)
@@ -271,12 +271,12 @@ def main():
     module = AnsibleAWSModule(argument_spec=argument_spec,
                               supports_check_mode=True)
 
-    topic_type = module.params.get('topic_type')
-    topic_name = module.params.get('topic_name')
+    topic_type = module.params.get('topic').get('type')
+    topic_name = module.params.get('topic').get('name')
     state = module.params.get('state')
-    subscription_protocol = module.params.get('subscription_protocol')
-    subscription_endpoint = module.params.get('subscription_endpoint')
-    subscription_attributes = module.params.get('subscription_attributes')
+    subscription_protocol = module.params.get('subscription').get('protocol')
+    subscription_endpoint = module.params.get('subscription').get('endpoint')
+    subscription_attributes = module.params.get('subscription').get('attributes')
     check_mode = module.check_mode
 
     sns_topic_sub = SnsTopicSubscriptionManager(module,
@@ -297,7 +297,7 @@ def main():
 
     sns_topic_sub_facts = dict(changed=changed,
                      sns_topic_subscription_arn=sns_topic_sub.sub_arn,
-                     sns_topic_subscription=sns_topic_sub.attributes_set(sns_topic_sub.connection, module, sns_topic_sub.topic_arn))
+                     sns_topic_subscription=sns_topic_sub.attributes_set)
 
     module.exit_json(**sns_topic_sub_facts)
 
