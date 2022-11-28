@@ -148,6 +148,7 @@ try:
 except ImportError:
     pass  # handled by AnsibleAWSModule
 
+
 from ansible_collections.amazon.aws.plugins.module_utils.core import AnsibleAWSModule
 from ansible_collections.amazon.aws.plugins.module_utils.ec2 import AWSRetry
 from ansible_collections.community.aws.plugins.module_utils.sqs import get_client
@@ -175,12 +176,12 @@ def main():
     if name.startswith('arn:'):
       queue_arn = name
     else:
-      queue_url = get_queue_url(client, get_queue_name(name, is_fifo))
+      queue_url = get_queue_url(client, get_queue_name(module, is_fifo))
       queue_arn = get_queue_arn(client, queue_url)
       
 
     if queue_arn:
-        results = dict(sqs_queue_arn=queue_arn, sqs_queue_url=queue_url, sqs_queue=describe_queue(client, queue_url))
+        results = dict(sqs_queue_arn=queue_arn, sqs_queue_url=queue_url, sqs_queue_attributes=describe_queue(client, queue_url))
     else:
         results = list_queues(client, module)
 
