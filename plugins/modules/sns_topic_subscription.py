@@ -283,7 +283,7 @@ def main():
                                 state=state,
                                 topic_type=topic_type,
                                 topic_name=topic_name,
-                                subcription_protocol=subscription_protocol,
+                                subscription_protocol=subscription_protocol,
                                 subscription_endpoint=subscription_endpoint,
                                 subscription_attributes=subscription_attributes,
                                 check_mode=check_mode)
