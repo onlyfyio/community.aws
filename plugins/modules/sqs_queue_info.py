@@ -4,6 +4,14 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+from ansible_collections.community.aws.plugins.module_utils.sqs import list_queues
+from ansible_collections.community.aws.plugins.module_utils.sqs import describe_queue
+from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_arn
+from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_url
+from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_name
+from ansible_collections.community.aws.plugins.module_utils.sqs import get_client
+from ansible_collections.amazon.aws.plugins.module_utils.ec2 import AWSRetry
+from ansible_collections.amazon.aws.plugins.module_utils.core import AnsibleAWSModule
 __metaclass__ = type
 
 
@@ -121,20 +129,11 @@ except ImportError:
     pass  # handled by AnsibleAWSModule
 
 
-from ansible_collections.amazon.aws.plugins.module_utils.core import AnsibleAWSModule
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import AWSRetry
-from ansible_collections.community.aws.plugins.module_utils.sqs import get_client
-from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_name
-from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_url
-from ansible_collections.community.aws.plugins.module_utils.sqs import get_queue_arn
-from ansible_collections.community.aws.plugins.module_utils.sqs import describe_queue
-from ansible_collections.community.aws.plugins.module_utils.sqs import list_queues
-
-
 def main():
     argument_spec = dict(
         name=dict(type='str', required=True),
-        type=dict(type='str', default='standard', choices=['standard', 'fifo']),
+        type=dict(type='str', default='standard',
+                  choices=['standard', 'fifo']),
     )
 
     module = AnsibleAWSModule(argument_spec=argument_spec,
@@ -143,17 +142,24 @@ def main():
     client = get_client(module)
 
     queue_arn = None
+    queue_url = None
     name = module.params.get('name')
     is_fifo = module.params.get('type') in ('fifo')
     if name.startswith('arn:'):
-      queue_arn = name
+        queue_arn = name
+
+        queue = name.split(':')
+        queue_name = queue[-1]
+        queue_account = queue[-2]
+
+        queue_url = get_queue_url(client, queue_name, queue_account)
     else:
-      queue_url = get_queue_url(client, get_queue_name(module, is_fifo))
-      queue_arn = get_queue_arn(client, queue_url)
-      
+        queue_url = get_queue_url(client, get_queue_name(module, is_fifo))
+        queue_arn = get_queue_arn(client, queue_url)
 
     if queue_arn:
-        results = dict(arn=queue_arn, url=queue_url, attributes=describe_queue(client, queue_url))
+        results = dict(arn=queue_arn, url=queue_url,
+                       attributes=describe_queue(client, queue_url))
     else:
         results = list_queues(client, module)
 

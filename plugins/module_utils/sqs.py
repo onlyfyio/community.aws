@@ -21,7 +21,8 @@ def _list_queues_with_backoff(client):
 
 
 def get_client(module):
-    retry_decorator = AWSRetry.jittered_backoff(catch_extra_error_codes=['AWS.SimpleQueueService.NonExistentQueue'])
+    retry_decorator = AWSRetry.jittered_backoff(
+        catch_extra_error_codes=['AWS.SimpleQueueService.NonExistentQueue'])
     client = module.client('sqs', retry_decorator=retry_decorator)
     return client
 
@@ -35,9 +36,9 @@ def get_queue_name(module, is_fifo=False):
 
 # NonExistentQueue is explicitly expected when a queue doesn't exist
 @AWSRetry.jittered_backoff()
-def get_queue_url(client, name):
+def get_queue_url(client, name, aws_account):
     try:
-        return client.get_queue_url(QueueName=name)['QueueUrl']
+        return client.get_queue_url(QueueName=name, QueueOwnerAWSAccountId=aws_account)['QueueUrl']
     except is_boto3_error_code('AWS.SimpleQueueService.NonExistentQueue'):
         return None
 
@@ -46,7 +47,7 @@ def get_queue_url(client, name):
 @AWSRetry.jittered_backoff()
 def get_queue_arn(client, url):
     try:
-        return client.client.get_queue_attributes(QueueUrl=url,AttributeNames=['QueueArn'])['Attributes']['QueueArn']
+        return client.client.get_queue_attributes(QueueUrl=url, AttributeNames=['QueueArn'])['Attributes']['QueueArn']
     except is_boto3_error_code('AWS.SimpleQueueService.NonExistentQueue'):
         return None
 
@@ -55,7 +56,8 @@ def describe_queue(client, queue_url):
     """
     Description a queue in snake format
     """
-    attributes = client.get_queue_attributes(QueueUrl=queue_url, AttributeNames=['All'], aws_retry=True)['Attributes']
+    attributes = client.get_queue_attributes(QueueUrl=queue_url, AttributeNames=[
+                                             'All'], aws_retry=True)['Attributes']
     description = dict(attributes)
     description.pop('Policy', None)
     description.pop('RedrivePolicy', None)
