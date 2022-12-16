@@ -36,9 +36,13 @@ def get_queue_name(module, is_fifo=False):
 
 # NonExistentQueue is explicitly expected when a queue doesn't exist
 @AWSRetry.jittered_backoff()
-def get_queue_url(client, name, aws_account):
+def get_queue_url(client, name, aws_account=None):
     try:
-        return client.get_queue_url(QueueName=name, QueueOwnerAWSAccountId=aws_account)['QueueUrl']
+        if aws_account is None:
+            return client.get_queue_url(QueueName=name)['QueueUrl']
+        else:
+            return client.get_queue_url(QueueName=name, QueueOwnerAWSAccountId=aws_account)['QueueUrl']
+
     except is_boto3_error_code('AWS.SimpleQueueService.NonExistentQueue'):
         return None
 
