@@ -196,7 +196,7 @@ class SnsTopicSubscriptionManager(object):
         self.topic_arn = None
         self.sub_arn = None
         self.desired_subscription_attributes = dict()
-        self.attributes_set = []
+        self.attributes_set = {}
 
     def _create_sub(self):
         if not self.check_mode:
@@ -298,14 +298,16 @@ class SnsTopicSubscriptionManager(object):
             if self.topic_type == 'fifo' and not name.endswith('.fifo'):
                 name += ".fifo"
             self.topic_arn = topic_arn_lookup(self.connection, self.module, name)
-        
+
         subscriptions_existing_list = {}
         desired_sub_key = (canonicalize_endpoint(self.subscription_protocol, self.subscription_endpoint))
-        for sub in list_topic_subscriptions(self.connection, self.module, self.topic_arn):
-            sub_key = (canonicalize_endpoint(sub['Protocol'], sub['Endpoint']))
-            subscriptions_existing_list[sub_key] = sub['SubscriptionArn']
-        if desired_sub_key in subscriptions_existing_list:
-            self.sub_arn = subscriptions_existing_list[sub_key]
+        sublist = list_topic_subscriptions(self.connection, self.module, self.topic_arn)
+        if len(sublist) != 0:
+            for sub in sublist:
+                sub_key = (canonicalize_endpoint(sub['Protocol'], sub['Endpoint']))
+                subscriptions_existing_list[sub_key] = sub['SubscriptionArn']
+            if desired_sub_key in subscriptions_existing_list:
+                self.sub_arn = subscriptions_existing_list[sub_key]
 
 
 def main():
