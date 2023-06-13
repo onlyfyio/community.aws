@@ -248,7 +248,7 @@ EXAMPLES = r'''
       name: lc1
       image_id: ami-xxxx
       assign_public_ip: true
-      instance_type: t2.medium
+      instance_type: t3.medium
       key_name: my-key
       security_groups: "['sg-xxxx']"
       volumes: "{{ volumes }}"
