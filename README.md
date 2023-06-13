@@ -80,7 +80,7 @@ You can either call modules by their Fully Qualified Collection Name (FQCN), suc
       state: present
       engine: mariadb
       storage_encrypted: True
-      db_instance_class: db.t2.medium
+      db_instance_class: db.t3.medium
       username: "{{ username }}"
       password: "{{ password }}"
       allocated_storage: "{{ allocated_storage }}"
